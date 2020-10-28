@@ -1,0 +1,374 @@
+#include <iostream>
+#include <iomanip>
+#include <ctime>
+#include <string>
+#include <array>
+#include <fstream>
+#include <sstream>
+#include <math.h>
+#include <stdlib.h>
+#include <conio.h>
+#include <windows.h>
+#include <time.h>
+#include <cstdlib>
+#include <stdio.h>
+
+using namespace std;
+
+string cclass = "";
+int chp = 0;
+int mchp = 0;
+double regen = 3;
+double catt = 0;
+int cxp = 0;
+double lvl = 1;
+bool keepplaying = true;
+bool lvlrdy = false;
+int score = 0;
+
+void viewhscores()
+{
+	string line;
+	ifstream sdata;
+	sdata.open("hscores.txt");
+
+	cout << "High Scores" << endl;
+	while (getline(sdata, line))
+	{
+		cout << line << endl;
+	}
+	sdata.close();
+}
+
+void updatehscores()
+{
+	int scorearray[11] = {0,0,0,0,0,0,0,0,0,0,0};
+	string line;
+	ifstream sdatai;
+	sdatai.open("hscores.txt");
+
+	int counter = 0;
+	while (getline(sdatai, line))
+	{
+		istringstream ss(line);
+		ss >> scorearray[counter];
+		counter++;
+	}
+
+	sdatai.close();
+
+	scorearray[10] = score;
+
+	for (int j = 0; j < 10; j++)
+	{
+		for (int i = 0; i < 10 - j; i++)
+		{
+			if (scorearray[i] > scorearray[i + 1])
+			{
+				int temp = scorearray[i];
+				scorearray[i] = scorearray[i + 1];
+				scorearray[i + 1] = temp;
+			}
+		}
+	}
+
+	ofstream sdatao;
+	sdatao.open("hscores.txt");
+	sdatao << scorearray[10] << "\n" << scorearray[9] << "\n" << scorearray[8] << "\n" << scorearray[7] << "\n" << scorearray[6] << "\n" << scorearray[5] << "\n" << scorearray[4] << "\n" << scorearray[3] << "\n" << scorearray[2] << "\n" << scorearray[1];
+	sdatao.close();
+}
+
+void lvlup()
+{
+	for (int x = 0; x < 2; x++)
+	{
+		bool tryagain = false;
+		do
+		{
+			int statup;
+			if (x == 0)
+				cout << "Congratulations on reaching level " << lvl << ". You may upgrade twice.\n\n1 - Max HP\n2 - Regeneration\n3 - Attack" << endl;
+			else
+				cout << "And one more.\n\n1 - Max HP\n2 - Regeneration\n3 - Attack" << endl;
+
+			cin >> statup;
+			if (statup == 1)
+			{
+				double temp = mchp;
+				mchp = mchp * 1.3;
+				chp = chp + ((mchp - temp) / 2);
+			}
+			else if (statup == 2)
+				regen = regen+1;
+			else if (statup == 3)
+				catt = catt*1.3;
+			else
+				tryagain = true;
+		} while (tryagain == true);
+		system("CLS");
+	}
+	cxp = cxp - (10 * (lvl / 2));
+	lvlrdy = false;
+	lvl++;
+}
+
+void savegame()
+{
+	ofstream cdata;
+	cdata.open("character data.txt");
+	cdata << cclass << "\t" << chp << "\t" << mchp << "\t" << regen << "\t" << catt << "\t" << cxp << "\t" << lvl << "\t" << score;
+	cdata.close();
+}
+
+void play()
+{
+	cout << "When you see 'ATTACK #' hit the number then enter before times up" << endl;
+
+	int aihp = (((rand() % 6) + 5) * pow(1.2,lvl)*9);
+	int numcheck = 10;
+	int damage = 0;
+
+	
+	bool keepatt = true;
+	while (keepatt == true)
+	{
+		int aiatt = (((rand() % 20) + 10) * pow(1.15, lvl));
+		int cntratt = (rand() % 2);
+		int ct = ((rand() % 5) + 1) * 1000;
+		int sucat = (rand() % 10);
+
+		cout << "ai hp - " << aihp << "\nai attack - " << aiatt << "\n\n" << endl;
+		cout << "\nhp - " << chp << "\nattack - " << catt << "\n\n" << endl;
+
+		system("pause");
+		system("CLS");
+		cout << "ATTACK: ";
+		Sleep(ct);
+		cout << sucat << endl;
+		numcheck = 10;
+
+		
+
+		clock_t begin = clock();
+		
+		cin >> numcheck;
+
+		clock_t end = clock();
+
+		double atttime = double(end - begin) / CLOCKS_PER_SEC;
+
+		system("CLS");
+
+		cout << "time to strike: " << atttime << endl;
+
+
+
+		if (sucat == numcheck && atttime < 1)
+		{
+			int temp = aihp;
+			aihp = aihp - 4*catt*(1-atttime);
+			temp = temp - aihp;
+			cout << "HIT - " << temp << "\n" << endl;
+
+			if (cntratt == 0 && aihp > 0)
+			{
+				chp = chp - aiatt / 2;
+				cout << "OUCH - Counter Attacked\n" << endl;
+			}
+		}
+		else
+		{
+			chp = chp - aiatt;
+			cout << "OUCH\n" << endl;
+		}
+		
+
+		if (aihp < 1)
+		{
+			int xpgain = ((rand() % 4) + 2) * (1 + lvl / 2);
+			cout << "victory! you gained " << xpgain << " xp.\n" << endl;
+			cout << "\nhp remaining - " << chp << "\n" << endl;
+			cxp = cxp + xpgain;
+			score = score + xpgain;
+			if (cxp >= (10 * (lvl / 2)))
+			{
+				cout << "LEVEL UP\n" << endl;
+				lvlrdy = true;
+			}
+			system("pause");
+			system("CLS");
+
+
+			int sucheal = (rand() % 10);
+			cout << "Time to get some hp back, make it count.\n" << endl;
+			system("pause");
+			cout << "HEAL: ";
+			Sleep(ct);
+			cout << sucheal << endl;
+			clock_t begin = clock();
+			cin >> numcheck;
+			clock_t end = clock();
+			double atttime = double(end - begin) / CLOCKS_PER_SEC;
+			system("CLS");
+			cout << "time for regen: " << atttime << endl;
+
+			if (sucheal == numcheck && atttime < 1)
+			{
+				int temp = chp;
+				chp = chp + (regen / 2) * (mchp/1.5) * (1 - atttime);
+				temp = chp - temp;
+				cout << temp << " hp gained." << endl;
+				if (chp > mchp)
+					chp = mchp;
+			}
+			else
+			{
+				cout << "Your actually throwing, that was too important to choke this hard." << endl;
+			}
+			system("pause");
+			system("CLS");
+
+			break;
+		}
+		if (chp < 1)
+		{
+			cout << "hp - 0\nYour garbage and don't deserve a second chance looser. Your score was " << score << ".\n\n" << endl;
+			cout << "ai hp - " << aihp << "\nai attack - " << aiatt << "\n\n" << endl;
+			/*cclass = "";
+			chp = 0;
+			catt = 0;
+			cxp = 0;
+			lvl = 1;
+			savegame();*/
+			system("pause");
+			system("CLS");
+			updatehscores();
+			viewhscores();
+			system("pause");
+			exit(0);
+		}
+		cout << "ai hp - " << aihp << "\nai attack - " << aiatt << "\n" << endl;
+		cout << "\nhp - " << chp << "\nattack - " << catt << "\n\n" << endl;
+		cout << "1 - continue attacking\n2 - retreat" << endl;
+		int temp3;
+		cin >> temp3;
+		if (temp3 == 2)
+			keepatt = false;
+		system("CLS");
+	}
+
+}
+
+void loadchar()
+{
+	string line;
+	ifstream cdata;
+	cdata.open("character data.txt");
+
+	while (getline(cdata, line))
+	{
+		istringstream ss(line);
+
+		ss >> cclass >> chp >> mchp >> regen >> catt >> cxp >> lvl >> score;
+	}
+	cdata.close();
+}
+
+void viewchar()
+{
+	cout << "Class - " << cclass << endl;
+	cout << "HP - " << chp << "/" << mchp << endl;
+	cout << "Regeneration - " << regen << endl;
+	cout << "attack - " << catt << endl;
+	cout << "Expierience - " << cxp << "/" << (10*(lvl / 2)) << endl;
+	cout << "Level - " << lvl << "\n" << endl;
+	system("pause");
+	system("CLS");
+}
+
+int main()
+{
+	int mmc = 0;
+	int temp2 = 0;
+	bool resetmenu = false;
+	srand((unsigned)time(0));
+	do
+	{
+		resetmenu = false;
+		cout << "1 - Start a new game\n2 - Continue last game\n3 - gameplay mechanics\n4 - High Scores" << endl;
+		cin >> temp2;
+		system("CLS");
+		if (temp2 == 1)
+		{
+			cout << "What type of character you would like to make?\n1 - Orc - high health but low damage.\n2 - Human - medium health and medium damage.\n3 - Elf - low health but high damage." << endl;
+			int temp;
+			cin >> temp;
+			system("CLS");
+			switch (temp)
+			{
+			case 1: cclass = "Orc";
+				chp = 200;
+				mchp = 200;
+				catt = 10;
+				break;
+			case 2: cclass = "Human";
+				chp = 100;
+				mchp = 100;
+				catt = 20;
+				break;
+			case 3: cclass = "Elf";
+				chp = 50;
+				mchp = 50;
+				catt = 40;
+				break;
+			}
+		}
+		else if (temp2 == 2)
+		{
+			loadchar();
+		}
+		else if (temp2 == 3)
+		{
+			cout << "Ai hp and damage decided through rng that scales with player level.\n\nXP gain and level up requirements also scaled with player level.\nAttacks that take under 1 second will deal damage depending on how fast you were.\n\nThere's a 1/3 chance half of the enemies damage will be dealt as counter attack upon successful hit.\n\nAfter defeating an enemy, using the same mechanics as attacking, you are able to regen hp by an amount scaling\nwith your max hp as well your regeneration stat.\n\ndon't miss your chance to level up, if you earn another one with the previous still pending you'll loose it." << endl;
+			resetmenu = true;
+			system("pause");
+			system("CLS");
+		}
+		else if (temp2 == 4)
+		{
+			resetmenu = true;
+			system("CLS");
+			viewhscores();
+			system("pause");
+			system("CLS");
+		}
+		else;
+	} while (resetmenu == true);
+
+	while (keepplaying == true)
+	{
+		if (lvlrdy == true)
+		{
+			cout << "Your character has a pending level up\n0 - Level up screen" << endl;
+		}
+
+		cout << "1 - Battle\n2 - View character\n3 - Save game\n4 - Exit game" << endl;
+		cin >> mmc;
+		system("CLS");
+		switch (mmc)
+		{
+		case 0: if (lvlrdy == true)
+					lvlup();
+			break;
+		case 1: play();
+			break;
+		case 2: viewchar();
+			break;
+		case 3: savegame();
+			break;
+		case 4: keepplaying = false;
+			break;
+		}
+	}
+	return 0;
+}
